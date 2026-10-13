@@ -23,6 +23,15 @@ This project helped me understand how backend APIs work by building and testing 
 - **Swagger UI** — testing API endpoints interactively.
 - **Git and GitHub** — version control and project hosting.
 
+### Input Validation
+
+- Task titles are required when creating a task.
+- Titles must be strings and cannot be empty or contain only whitespace.
+- Leading and trailing whitespace is removed from new task titles.
+- Task updates must include at least one field (`title` and/or `done`).
+- The `done` field must be a boolean (`true` or `false`).
+- Requests for nonexistent task IDs return a `404 Not Found` response.
+
 ## Getting Started
 
 ### Prerequisites
