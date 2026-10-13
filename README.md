@@ -15,6 +15,26 @@ This project helped me understand how backend APIs work by building and testing 
 - Handle invalid requests and return appropriate HTTP status codes.
 - Explore and test endpoints through FastAPI's interactive Swagger UI.
 
+## Example curl Output
+
+Request:
+
+```bash
+curl.exe -i http://127.0.0.1:8000/health
+```
+
+Response:
+
+```http
+HTTP/1.1 200 OK
+date: Tue, 13 Oct 2026 17:09:52 GMT
+server: uvicorn
+content-length: 15
+content-type: application/json
+
+{"status":"ok"}
+```
+
 ## Technologies Used
 
 - **Python** — application logic.
