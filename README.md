@@ -12,28 +12,8 @@ This project helped me understand how backend APIs work by building and testing 
 - Create new tasks with a title.
 - Update a task's title and completion status.
 - Delete tasks by ID.
-- Handle invalid requests and return appropriate HTTP status codes.
-- Explore and test endpoints through FastAPI's interactive Swagger UI.
-
-## Example curl Output
-
-Request:
-
-```bash
-curl.exe -i http://127.0.0.1:8000/health
-```
-
-Response:
-
-```http
-HTTP/1.1 200 OK
-date: Tue, 13 Oct 2026 17:09:52 GMT
-server: uvicorn
-content-length: 15
-content-type: application/json
-
-{"status":"ok"}
-```
+- Validate user input and return appropriate HTTP status codes.
+- Test endpoints through FastAPI's interactive Swagger UI.
 
 ## Technologies Used
 
@@ -43,85 +23,47 @@ content-type: application/json
 - **Swagger UI** — testing API endpoints interactively.
 - **Git and GitHub** — version control and project hosting.
 
-### Input Validation
-
-- Task titles are required when creating a task.
-- Titles must be strings and cannot be empty or contain only whitespace.
-- Leading and trailing whitespace is removed from new task titles.
-- Task updates must include at least one field (`title` and/or `done`).
-- The `done` field must be a boolean (`true` or `false`).
-- Requests for nonexistent task IDs return a `404 Not Found` response.
-
 ## Getting Started
 
 ### Prerequisites
 
 - Python installed.
+- Git installed.
 - A terminal and a code editor.
 
 ### Installation and Setup
 
-Clone the repository:
-
-```bash
-git clone <your-github-repository-url>
-cd "Task API"
-```
-
-Create and activate a virtual environment on Windows:
-
-```powershell
-python -m venv venv
-venv\Scripts\activate
-```
-
-Install the dependencies:
-
-```bash
-pip install fastapi uvicorn
-```
-
-Start the development server:
-
-```bash
-fastapi dev main.py
-```
-
-Open the following URL in your browser to access the interactive API documentation:
-
-http://127.0.0.1:8000/docs
-
-The API runs locally and stores tasks in memory. Task changes are not persistent and reset when the server restarts.
-
-Clone the repository:
+**1. Clone the repository**
 
 ```bash
 git clone https://github.com/dashdibyanshi2006/task-api.git
 cd task-api
 ```
 
-Create and activate a virtual environment on Windows:
+**2. Create and activate a virtual environment on Windows**
 
 ```powershell
 python -m venv venv
 venv\Scripts\activate
 ```
 
-Install the dependencies:
+**3. Install the dependencies**
 
 ```bash
 pip install fastapi uvicorn
 ```
 
-Start the development server:
+**4. Start the development server**
 
 ```bash
 uvicorn main:app --reload
 ```
 
-Open the following URL in your browser to access the interactive API documentation:
+**5. Open the API documentation**
 
-http://127.0.0.1:8000/docs
+Visit [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) in your browser to explore and test the endpoints.
+
+The API stores tasks in memory. Task changes are not persistent and reset when the server restarts.
 
 ## API Endpoints
 
@@ -135,9 +77,9 @@ http://127.0.0.1:8000/docs
 | PUT | `/tasks/{task_id}` | Update a task |
 | DELETE | `/tasks/{task_id}` | Delete a task |
 
-### Example Request
+## Example Request
 
-Create a task using `POST /tasks`:
+Create a task using `POST /tasks` with the following JSON body:
 
 ```json
 {
@@ -145,9 +87,18 @@ Create a task using `POST /tasks`:
 }
 ```
 
-A successful creation returns **201 Created** and a task containing its ID, title, and completion status.
+A successful request returns `201 Created` and a task containing its ID, title, and completion status.
 
-## HTTP Status Codes and Error Handling
+## Input Validation and Error Handling
+
+- Task titles are required when creating a task.
+- Titles must be strings and cannot be empty or contain only whitespace.
+- Leading and trailing whitespace is removed from new task titles.
+- Task updates must include at least one field: `title` and/or `done`.
+- The `done` field must be a boolean (`true` or `false`).
+- Requests for nonexistent task IDs return `404 Not Found`.
+
+### HTTP Status Codes
 
 | Status code | Meaning |
 |---|---|
@@ -157,7 +108,25 @@ A successful creation returns **201 Created** and a task containing its ID, titl
 | `400 Bad Request` | The request contains invalid task data |
 | `404 Not Found` | The requested task does not exist |
 
-The API validates task titles and returns error messages for invalid requests. It also returns a `404` response when a task ID cannot be found.
+## Example curl Output
+
+**Request:**
+
+```bash
+curl.exe -i http://127.0.0.1:8000/health
+```
+
+**Response:**
+
+```http
+HTTP/1.1 200 OK
+date: Tue, 13 Oct 2026 17:09:52 GMT
+server: uvicorn
+content-length: 15
+content-type: application/json
+
+{"status":"ok"}
+```
 
 ## Swagger UI
 
@@ -176,12 +145,11 @@ While building this project, I practised:
 - Working with Python lists and dictionaries to store task data.
 - Using path parameters to retrieve, update, and delete individual tasks.
 - Using `if` conditions, `for` loops, and `return` statements to control program flow.
-- Understanding Python exceptions, including `raise`, and handling missing resources.
-- Validating user input and distinguishing between client errors (`400` and `404`) and server errors (`500`).
+- Validating user input and returning appropriate error responses.
 - Using f-strings to create dynamic error messages.
 - Running a local development server and testing requests using `curl`.
 - Understanding virtual environments and why in-memory data resets when the server restarts.
-- Testing API behaviour and checking that changes do not break previously working functionality.
+- Testing API behaviour to ensure changes do not break existing functionality.
 
 ## Future Improvements
 
