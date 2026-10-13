@@ -46,10 +46,12 @@ def update_task(task_id: int, body: dict):
             if "title" not in body and "done" not in body:
                 return JSONResponse(status_code=400, content={"error": "send title and/or done"})
 
+
             if "title" in body:
-                if not body["title"]:
-                    return JSONResponse(status_code=400, content={"error": "title cannot be empty"})
+                if not isinstance(body["title"], str) or not body["title"].strip():
+                    return JSONResponse(status_code=400, content={"error": "title must be a non-empty string"})
                 task["title"] = body["title"]
+            
 
             if "done" in body:
                 if not isinstance(body["done"], bool):
