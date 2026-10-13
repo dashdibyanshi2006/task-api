@@ -32,7 +32,7 @@ def get_task(task_id: int):
 
 @app.post("/tasks", description="Create a new task")
 def create_task(body: dict):
-    if "title" not in body or not body["title"]:
+    if "title" not in body or not isinstance(body["title"], str) or not body["title"].strip():
         return JSONResponse(status_code=400, content={"error": "title is required"})
 
     new_task = {"id": max((task["id"] for task in tasks), default=0) + 1, "title": body["title"], "done": False}
