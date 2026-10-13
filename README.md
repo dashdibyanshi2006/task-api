@@ -93,6 +93,36 @@ http://127.0.0.1:8000/docs
 
 The API runs locally and stores tasks in memory. Task changes are not persistent and reset when the server restarts.
 
+Clone the repository:
+
+```bash
+git clone https://github.com/dashdibyanshi2006/task-api.git
+cd task-api
+```
+
+Create and activate a virtual environment on Windows:
+
+```powershell
+python -m venv venv
+venv\Scripts\activate
+```
+
+Install the dependencies:
+
+```bash
+pip install fastapi uvicorn
+```
+
+Start the development server:
+
+```bash
+uvicorn main:app --reload
+```
+
+Open the following URL in your browser to access the interactive API documentation:
+
+http://127.0.0.1:8000/docs
+
 ## API Endpoints
 
 | Method | Endpoint | Description |
