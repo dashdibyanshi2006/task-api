@@ -56,17 +56,28 @@ def home():
 def health():
     return {"status": "ok"}
 
-@app.get("/tasks" ,description="Get all tasks")
+def task_json(row):
+    return {"id": row["id"], "title": row["title"], "done": bool(row["done"])}
+
+
+def task_not_found(task_id):
+    return JSONResponse(status_code=404, content={"error": f"Task {task_id} not found"})
+
+
+@app.get("/tasks", description="Get all tasks")
 def get_tasks():
-    return tasks
+    with database() as conn:
+        rows = conn.execute("SELECT * FROM tasks ORDER BY id").fetchall()
+    return [task_json(row) for row in rows]
+
 
 @app.get("/tasks/{task_id}", description="Get a task by ID")
 def get_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            return task
-
-    return JSONResponse(status_code=404, content={"error": f"Task {task_id} not found"})
+    with database() as conn:
+        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+    if row is None:
+        return task_not_found(task_id)
+    return task_json(row)
 
 
 @app.post("/tasks", description="Create a new task")
