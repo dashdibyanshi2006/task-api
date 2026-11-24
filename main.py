@@ -52,12 +52,6 @@ async def invalid_request(request, exc):
     return await request_validation_exception_handler(request, exc)
 
 
-tasks = [
-    {"id": 1, "title": "Buy milk", "done": False},
-    {"id": 2, "title": "Buy Sugar", "done": False},
-    {"id": 3, "title": "Buy Flour", "done": False},
-]
-
 @app.get("/", description="Get API information")
 def home():
     return {"name": "Task API", "version": "1.0", "endpoints": ["/tasks"]}
@@ -104,36 +98,32 @@ def create_task(body: dict):
 
 @app.put("/tasks/{task_id}", description="Update a task by ID")
 def update_task(task_id: int, body: dict):
-    for task in tasks:
-        if task["id"] == task_id:
-            if "title" not in body and "done" not in body:
-                return JSONResponse(status_code=400, content={"error": "send title and/or done"})
+    with database() as conn:
+        # Keep another writer from changing the task between the read and update.
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        if row is None:
+            return task_not_found(task_id)
+
+        if "title" not in body and "done" not in body:
+            return JSONResponse(status_code=400, content={"error": "send title and/or done"})
+
+        title = body.get("title", row["title"])
+        if not isinstance(title, str) or not title.strip():
+            return JSONResponse(status_code=400, content={"error": "title must be a non-empty string"})
+
+        done = body.get("done", bool(row["done"]))
+        if not isinstance(done, bool):
+            return JSONResponse(status_code=400, content={"error": "done must be true or false"})
+
+        conn.execute("UPDATE tasks SET title = ?, done = ? WHERE id = ?", (title, int(done), task_id))
+    return {"id": task_id, "title": title, "done": done}
 
 
-            if "title" in body:
-                if not isinstance(body["title"], str) or not body["title"].strip():
-                    return JSONResponse(status_code=400, content={"error": "title must be a non-empty string"})
-                task["title"] = body["title"]
-
-
-            if "done" in body:
-                if not isinstance(body["done"], bool):
-                    return JSONResponse(status_code=400, content={"error": "done must be true or false"})
-                task["done"] = body["done"]
-
-            return task
-
-    return JSONResponse(status_code=404, content={"error": f"Task {task_id} not found"})
-
-
-@app.delete("/tasks/{task_id}", description="Delete a task by ID")
+@app.delete("/tasks/{task_id}", status_code=204, description="Delete a task by ID")
 def delete_task(task_id: int):
-    for task in tasks:
-        if task["id"] == task_id:
-            tasks.remove(task)
-            return Response(status_code=204)
-
-    return JSONResponse(
-        status_code=404,
-        content={"error": f"Task {task_id} not found"}
-    )
+    with database() as conn:
+        cursor = conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+        if cursor.rowcount == 0:
+            return task_not_found(task_id)
+    return Response(status_code=204)
