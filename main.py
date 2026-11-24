@@ -1,7 +1,46 @@
+import sqlite3
+from contextlib import asynccontextmanager, closing, contextmanager
+from pathlib import Path
+
 from fastapi import FastAPI, Response
 from fastapi.responses import JSONResponse
 
-app = FastAPI()
+
+DB_PATH = Path(__file__).with_name("tasks.db")
+SEED_TASKS = [("Buy milk", 0), ("Buy Sugar", 0), ("Buy Flour", 0)]
+
+
+@contextmanager
+def database():
+    with closing(sqlite3.connect(DB_PATH)) as conn, conn:
+        conn.row_factory = sqlite3.Row
+        yield conn
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    with database() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS tasks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                done INTEGER NOT NULL DEFAULT 0
+            )
+            """
+        )
+        count = conn.execute("SELECT COUNT(*) FROM tasks").fetchone()[0]
+        # SQLite keeps this sequence after all rows are deleted.
+        seeded = conn.execute(
+            "SELECT 1 FROM sqlite_sequence WHERE name = ?", ("tasks",)
+        ).fetchone()
+        if count == 0 and seeded is None:
+            conn.executemany("INSERT INTO tasks (title, done) VALUES (?, ?)", SEED_TASKS)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 tasks = [
     {"id": 1, "title": "Buy milk", "done": False},
@@ -51,7 +90,7 @@ def update_task(task_id: int, body: dict):
                 if not isinstance(body["title"], str) or not body["title"].strip():
                     return JSONResponse(status_code=400, content={"error": "title must be a non-empty string"})
                 task["title"] = body["title"]
-            
+
 
             if "done" in body:
                 if not isinstance(body["done"], bool):
