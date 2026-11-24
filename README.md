@@ -161,3 +161,15 @@ While building this project, I practised:
 ## Project Context
 
 Built as a beginner backend project for the FlyRank AI Backend Track, Week 2, Assignment A1.
+
+## SQLite walkthrough
+
+The local `tasks.db` file contains the `tasks` table with an integer ID, a title, and a completion flag. SQLite stores the flag as `0` or `1`. The API returns it as `false` or `true`.
+
+```sql
+SELECT id, title, done FROM tasks WHERE done = 1;
+```
+
+On the walkthrough database this returned one row, task 4, after marking it complete with `PUT /tasks/4`. On a disposable database, `UPDATE tasks SET done = 1` and `DELETE FROM tasks WHERE done = 1` both showed up on the next `GET /tasks` without restarting the API.
+
+To repeat the read-only query, open `tasks.db` in DB Browser for SQLite and paste the query into **Execute SQL**. Use a disposable copy for the UPDATE and DELETE examples.
