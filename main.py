@@ -3,6 +3,8 @@ from contextlib import asynccontextmanager, closing, contextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Response
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 
@@ -42,6 +44,14 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+
+@app.exception_handler(RequestValidationError)
+async def invalid_request(request, exc):
+    if all(error["loc"][:1] == ("body",) for error in exc.errors()):
+        return JSONResponse(status_code=400, content={"error": "Expected a JSON object"})
+    return await request_validation_exception_handler(request, exc)
+
+
 tasks = [
     {"id": 1, "title": "Buy milk", "done": False},
     {"id": 2, "title": "Buy Sugar", "done": False},
@@ -80,14 +90,17 @@ def get_task(task_id: int):
     return task_json(row)
 
 
-@app.post("/tasks", description="Create a new task")
+@app.post("/tasks", status_code=201, description="Create a new task")
 def create_task(body: dict):
     if "title" not in body or not isinstance(body["title"], str) or not body["title"].strip():
         return JSONResponse(status_code=400, content={"error": "title is required"})
 
-    new_task = {"id": max((task["id"] for task in tasks), default=0) + 1, "title": body["title"].strip(), "done": False}
-    tasks.append(new_task)
-    return JSONResponse(status_code=201, content=new_task)
+    title = body["title"].strip()
+    with database() as conn:
+        cursor = conn.execute("INSERT INTO tasks (title, done) VALUES (?, ?)", (title, 0))
+        task_id = cursor.lastrowid
+    return {"id": task_id, "title": title, "done": False}
+
 
 @app.put("/tasks/{task_id}", description="Update a task by ID")
 def update_task(task_id: int, body: dict):
